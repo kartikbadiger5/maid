@@ -1,0 +1,52 @@
+// settings.gradle
+
+// Root project name
+rootProject.name = 'MyProject'
+
+// Enable the Gradle Version Catalog for centralized dependency management
+enableFeaturePreview('VERSION_CATALOGS')
+
+// Include subprojects dynamically based on the folder structure
+// This will automatically include all subprojects within the root directory
+fileTree(dir: rootDir, include: '**/build.gradle').visit { FileVisitDetails details ->
+    def projectPath = details.file.parentFile.toPath().relativize(rootDir.toPath()).toString().replace(File.separator, ':')
+    include(projectPath)
+}
+
+// Build cache configuration
+buildCache {
+    local {
+        // Enable local build cache
+        enabled = true
+        // Specify build cache directory
+        directory = new File(rootDir, 'build-cache')
+        // Maximum size for cache in MB
+        removeUnusedEntriesAfterDays = 30
+    }
+
+    // Optionally enable remote build cache (e.g., Gradle Enterprise)
+    // remote(HttpBuildCache) {
+    //    url = 'http://your-cache-server'
+    //    push = true
+    // }
+}
+
+// Dependency resolution strategy (optional)
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        mavenCentral()
+        google()
+        // Add custom repositories if needed
+        // maven { url 'https://your-company-repo' }
+    }
+}
+
+// Configure version catalogs (optional)
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            from(files('gradle/libs.versions.toml'))
+        }
+    }
+}
